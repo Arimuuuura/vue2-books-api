@@ -6,6 +6,8 @@
       <v-container>
         <router-view
           @add-book-list="addBook"
+          :books="books"
+          @update-book-info="updateBookInfo"
         />
       </v-container>
     </v-main>
@@ -53,14 +55,33 @@ export default {
 
       // this.newBook = '';
       this.saveBooks();
+      this.goToEditPage(this.books.slice(-1)[0].id);
     },
     removeBook(x) {
       this.books.splice(x, 1);
       this.saveBooks();
     },
+    // ローカルストレージに保存
     saveBooks() {
       const parsed = JSON.stringify(this.books);
       localStorage.setItem(STORAGE_KEY, parsed);
+    },
+    goToEditPage(id) {
+      this.$router.push(`/edit/${id}`);
+    },
+    updateBookInfo(e) {
+      const updateInfo = {
+        id: e.id,
+        readDate: e.readDate,
+        memo: e.memo,
+        title: this.books[e.id].title,
+        image: this.books[e.id].image,
+        description: this.books[e.id].description,
+      }
+
+      this.books.splice(e.id, 1, updateInfo);
+      this.saveBooks();
+      this.$router.push('/');
     },
   }
 };
