@@ -1,55 +1,97 @@
 <template>
   <v-app>
-    <v-app-bar
-      app
-      color="primary"
-      dark
-    >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Vuetify Logo"
-          class="shrink mr-2"
-          contain
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
-          transition="scale-transition"
-          width="40"
-        />
-
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
-          contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
-      </div>
-
-      <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>mdi-open-in-new</v-icon>
-      </v-btn>
-    </v-app-bar>
+    <HeaderView @delete-local-storage="deleteLocalStorage" />
 
     <v-main>
-      <router-view/>
+      <v-container>
+        <router-view
+          @add-book-list="addBook"
+          :books="books"
+          @update-book-info="updateBookInfo"
+        />
+      </v-container>
     </v-main>
+    <FooterView />
   </v-app>
 </template>
 
 <script>
+import HeaderView from '@/global/HeaderView.vue'
+import FooterView from '@/global/FooterView.vue'
+const STORAGE_KEY = 'books'
 
 export default {
   name: 'App',
+  components: {
+    HeaderView,
+    FooterView
+  },
 
-  data: () => ({
-    //
-  }),
+  data() {
+    return {
+      books: [],
+      newBook: null
+    }
+  },
+  mounted() {
+    if(localStorage.getItem(STORAGE_KEY)) {
+      try {
+        this.books = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      } catch (error) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+  },
+  methods: {
+    addBook(e) {
+      this.books.push({
+        id: this.books.length,
+        title: e.title,
+        image: e.image,
+        description: e.description,
+        readDate: '',
+        memo: ''
+      });
+
+      // this.newBook = '';
+      this.saveBooks();
+      this.goToEditPage(this.books.slice(-1)[0].id);
+    },
+    removeBook(x) {
+      this.books.splice(x, 1);
+      this.saveBooks();
+    },
+    // ローカルストレージに保存
+    saveBooks() {
+      const parsed = JSON.stringify(this.books);
+      localStorage.setItem(STORAGE_KEY, parsed);
+    },
+    goToEditPage(id) {
+      this.$router.push(`/edit/${id}`);
+    },
+    updateBookInfo(e) {
+      const updateInfo = {
+        id: e.id,
+        readDate: e.readDate,
+        memo: e.memo,
+        title: this.books[e.id].title,
+        image: this.books[e.id].image,
+        description: this.books[e.id].description,
+      }
+
+      this.books.splice(e.id, 1, updateInfo);
+      this.saveBooks();
+      this.$router.push('/');
+    },
+    deleteLocalStorage() {
+      const isDeleted = 'LocalStorageのデータを削除しますか？';
+      if(window.confirm(isDeleted)) {
+        localStorage.setItem(STORAGE_KEY, '');
+        localStorage.removeItem(STORAGE_KEY);
+        this.books = []
+        window.location.reload();
+      }
+    },
+  }
 };
 </script>
