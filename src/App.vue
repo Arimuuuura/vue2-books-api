@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <HeaderView/>
+    <HeaderView @delete-local-storage="deleteLocalStorage" />
 
     <v-main>
       <v-container>
@@ -82,6 +82,15 @@ export default {
       this.books.splice(e.id, 1, updateInfo);
       this.saveBooks();
       this.$router.push('/');
+    },
+    deleteLocalStorage() {
+      const isDeleted = 'LocalStorageのデータを削除しますか？';
+      if(window.confirm(isDeleted)) {
+        localStorage.setItem(STORAGE_KEY, '');
+        localStorage.removeItem(STORAGE_KEY);
+        this.books = []
+        window.location.reload();
+      }
     },
   }
 };
