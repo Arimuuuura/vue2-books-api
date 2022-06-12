@@ -3,7 +3,9 @@
     <HeaderView/>
 
     <v-main>
-      <router-view/>
+      <v-container>
+        <router-view/>
+      </v-container>
     </v-main>
     <FooterView />
   </v-app>
